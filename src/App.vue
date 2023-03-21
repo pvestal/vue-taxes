@@ -1,47 +1,212 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+<template>
+  <div v-if="invoicesLoaded">
+    <div v-if="!mobile" class="app flex flex-column">
+      <navComponent />
+      <div class="app-content flex flex-column">
+        <modalComponent v-if="modalActive" />
+        <transition name="invoice">
+          <invoiceModal v-if="invoiceModal" />
+        </transition>
+        <router-view />
+      </div>
+    </div>
+    <div v-else class="mobile-message flex flex-column">
+      <h2>Sorry, this app is not supported on mobile devices.</h2>
+      <p>To use this app. please use a computer or tablet.</p>
+    </div>
+  </div>
+</template>
+<script>
+import {mapState, mapActions} from 'vuex'
+import navComponent from './components/Navigation.vue'
+import invoiceModal from './components/InvoiceModal.vue'
+import modalComponent from './components/Modal.vue'
+
+export default ({
+  data() {
+    return {
+      mobile: null,
+    }
+  },
+  components: {
+    navComponent,
+    invoiceModal,
+    modalComponent,
+  },
+  created() {
+    this.GET_INVOICES();
+    this.checkScreen();
+    window.addEventListener("resize", this.checkScreen)
+  },
+  methods: {
+
+    ...mapActions(["GET_INVOICES"]),
+
+    checkScreen() {
+      const windowWidth = window.innerWidth;
+      if (windowWidth <= 750) {
+        this.mobile = true;
+        return;
+      }
+      this.mobile = false;
+    }
+  },
+  computed: {
+    ...mapState(["invoiceModal", "modalActive", "invoicesLoaded"])
+  }
+
+})
 </script>
 
-<template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
+<style lang="scss">
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap");
 
-  <main>
-    <TheWelcome />
-  </main>
-</template>
-
-<style scoped>
-header {
-  line-height: 1.5;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.app {
+  background-color: #141625;
+  min-height: 100vh;
+
+  @media (min-width: 900px) {
+    flex-direction: row !important;
+  }
+
+  .app-content {
+    padding: 0 20px;
+    flex: 1;
+    position: relative;
+  }
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+.mobile-message {
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #141625;
+  color: #fff;
+
+  p {
+    margin-top: 16px;
+  }
+}
+
+
+// animated invoice
+.invoice-enter-active,
+.invoice-leave-active {
+  transition: 0.8s ease all;
+}
+.invoice-enter-from,
+.invoice-leave-to {
+  transform: translateX(-700px);
+}
+
+
+button,
+.button {
+  cursor: pointer;
+  padding: 16px 24px;
+  border-radius: 30px;
+  border: none;
+  font-size: 12px;
+  margin-right: 8px;
+  color: #fff;
+}
+
+.dark-purple {
+  background-color: #252945;
+}
+
+.red {
+  background-color: #ec5757;
+}
+
+.purple {
+  background-color: #7c5dfa;
+}
+
+.green {
+  background-color: #33d69f;
+}
+
+.orange {
+  background-color: #ff8f00;
+}
+
+// utility classes
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  padding: 40px 10px;
+  max-width: 850px;
+  margin: 0 auto;
+
+  @media (min-width: 900px) {
+    padding-top: 72px;
+  }
+}
+
+.nav-link {
+  text-decoration: none;
+  color: initial;
+}
+
+// Status Button Styling
+.status-button {
+  &::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
   }
 
-  .logo {
-    margin: 0 2rem 0 0;
+  font-size: 12px;
+  margin-right: 30px;
+  align-items: center;
+  padding: 8px 30px;
+  border-radius: 10px;
+}
+
+.paid {
+  &::before {
+    background-color: #33d69f;
   }
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
+  color: #33d69f;
+  background-color: rgba(51, 214, 160, 0.1);
+}
+
+.pending {
+  &::before {
+    background-color: #ff8f00;
   }
+
+  color: #ff8f00;
+  background-color: rgba(255, 145, 0, 0.1);
+}
+
+.draft {
+  &::before {
+    background-color: #dfe3fa;
+  }
+
+  color: #dfe3fa;
+  background-color: rgba(223, 227, 250, 0.1);
 }
 </style>
+ 
